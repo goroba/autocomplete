@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from redis import Redis
 
 
-class ScorelessTrieClient(Client):
+class ScorelessClient(Client):
     def __init__(
         self,
         name: str,
@@ -19,14 +19,12 @@ class ScorelessTrieClient(Client):
         *,
         normalizer: Normalizer,
         top_n: int = 5,
-        min_query_length: int = 1,
         metadata_storage: MetadataStorage | None = None,
     ) -> None:
         super().__init__(
             normalizer=normalizer,
             tokenizer=NoopTokenizer(),
             top_n=top_n,
-            min_query_length=min_query_length,
         )
         self.name = name
         self.redis = redis
@@ -44,7 +42,7 @@ class ScorelessTrieClient(Client):
 
     def search(self, query: str) -> list[tuple[str, float, dict[str, Any]]]:
         normalized_query = self.normalizer.normalize(query)
-        if len(normalized_query) < self.min_query_length:
+        if not normalized_query:
             return []
 
         results: list[tuple[str, float]] = self.redis.zrange(
@@ -62,10 +60,16 @@ class ScorelessTrieClient(Client):
             for text, score in results[: self.top_n]
         ]
 
-    def click(self, text: str, *, amount: int | None = None) -> None:
-        ...
+    def click(self, text: str, *, clicks: int = 1) -> None:
+        pass
+
+    def rescore(self, text: str, score: float) -> None:
+        pass
 
     def delete(self, text: str) -> None:
         normalized_text = self.normalizer.normalize(text)
         self.redis.zrem(self._trie_key(), normalized_text)
         self.metadata_storage.delete(normalized_text)
+
+    def flush(self) -> None:
+        pass

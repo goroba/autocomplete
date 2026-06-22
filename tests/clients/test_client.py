@@ -10,10 +10,16 @@ class DummyClient(Client):
     def search(self, query):
         return []
 
-    def click(self, text, *, amount=None):
+    def click(self, text, *, clicks=1):
+        pass
+
+    def rescore(self, text, score):
         pass
 
     def delete(self, text):
+        pass
+
+    def flush(self):
         pass
 
 
@@ -26,7 +32,6 @@ def test_client_stores_dependencies():
     assert client.normalizer is normalizer
     assert client.tokenizer is tokenizer
     assert client.top_n == 5
-    assert client.min_query_length == 1
 
 
 def test_client_accepts_custom_top_n():

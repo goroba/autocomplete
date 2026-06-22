@@ -7,7 +7,7 @@ def test_redis_metadata_storage_stores_dependencies():
     redis = Mock()
     storage = RedisMetadataStorage("ac", redis)
 
-    assert storage.prefix == "ac"
+    assert storage.name == "ac"
     assert storage.redis is redis
 
 

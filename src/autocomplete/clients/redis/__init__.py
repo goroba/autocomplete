@@ -1,3 +1,4 @@
-from autocomplete.clients.redis.scoreless_trie_client import ScorelessTrieClient
+from autocomplete.clients.redis.cumulative_score_client import CumulativeScoreClient
+from autocomplete.clients.redis.scoreless_client import ScorelessClient
 
-__all__ = ["ScorelessTrieClient"]
+__all__ = ["CumulativeScoreClient", "ScorelessClient"]

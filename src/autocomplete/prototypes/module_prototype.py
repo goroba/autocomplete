@@ -26,8 +26,11 @@ class ModulePrototype(ABC):
     def search(self, query: str) -> list[tuple[str, float, dict[str, Any]]]:
         return self.client.search(query)
 
-    def click(self, text: str, *, amount: int | None = None) -> None:
-        self.client.click(text, amount=amount)
+    def click(self, text: str, *, clicks: int = 1) -> None:
+        self.client.click(text, clicks=clicks)
+
+    def rescore(self, text: str, score: float) -> None:
+        self.client.rescore(text, score)
 
     def delete(self, text: str) -> None:
         self.client.delete(text)

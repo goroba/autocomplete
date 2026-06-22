@@ -10,11 +10,11 @@ if TYPE_CHECKING:
 
 class RedisMetadataStorage(MetadataStorage):
     def __init__(self, prefix: str, redis: Redis) -> None:
-        self.prefix = prefix
+        self.name = prefix
         self.redis = redis
 
     def _metadata_key(self, key: str) -> str:
-        return f"{self.prefix}:metadata:{key}"
+        return f"{self.name}:metadata:{key}"
 
     def get(self, key: str) -> dict[str, Any] | None:
         result = self.redis.hgetall(self._metadata_key(key))

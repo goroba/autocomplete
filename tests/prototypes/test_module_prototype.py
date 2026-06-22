@@ -14,6 +14,7 @@ class DummyClient(Client):
         self.searched: list[str] = []
         self.deleted: list[str] = []
         self.clicked: list[str] = []
+        self.rescored: list[tuple[str, float]] = []
 
     def store(self, text, score=None, metadata=None):
         self.stored.append((text, score, metadata))
@@ -25,8 +26,14 @@ class DummyClient(Client):
     def delete(self, text):
         self.deleted.append(text)
 
-    def click(self, text, *, amount=None):
+    def click(self, text, *, clicks=1):
         self.clicked.append(text)
+
+    def rescore(self, text, score):
+        self.rescored.append((text, score))
+
+    def flush(self):
+        pass
 
 
 class DummyPrototype(ModulePrototype):

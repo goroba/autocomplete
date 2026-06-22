@@ -1,16 +1,16 @@
 from unittest.mock import Mock
 
-from autocomplete.clients.redis.scoreless_trie_client import ScorelessTrieClient
+from autocomplete.clients.redis.scoreless_client import ScorelessClient
 from autocomplete.metadata import NullMetadataStorage
 from autocomplete.metadata.redis.redis_metadata_storage import RedisMetadataStorage
 from autocomplete.normalizers.lowercase_normalizer import LowercaseNormalizer
 from autocomplete.tokenizers.noop_tokenizer import NoopTokenizer
 
 
-def _client(**kwargs) -> ScorelessTrieClient:
+def _client(**kwargs) -> ScorelessClient:
     redis = kwargs.pop("redis", Mock())
     prefix = kwargs.pop("prefix", "ac")
-    return ScorelessTrieClient(
+    return ScorelessClient(
         prefix,
         redis,
         normalizer=LowercaseNormalizer(),
@@ -18,11 +18,11 @@ def _client(**kwargs) -> ScorelessTrieClient:
     )
 
 
-def test_scoreless_trie_client_stores_dependencies():
+def test_scoreless_client_stores_dependencies():
     normalizer = LowercaseNormalizer()
     redis = Mock()
 
-    client = ScorelessTrieClient("ac", redis, normalizer=normalizer)
+    client = ScorelessClient("ac", redis, normalizer=normalizer)
 
     assert client.name == "ac"
     assert client.redis is redis
@@ -44,7 +44,7 @@ def test_store_adds_normalized_text_to_trie_sorted_set():
 
 def test_store_persists_metadata_when_storage_defined():
     redis = Mock()
-    client = ScorelessTrieClient(
+    client = ScorelessClient(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -71,7 +71,7 @@ def test_store_ignores_metadata_with_null_storage():
 def test_search_returns_results_with_metadata():
     redis = Mock()
     redis.zrange.return_value = [("hello", 0.0)]
-    client = ScorelessTrieClient(
+    client = ScorelessClient(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -82,7 +82,7 @@ def test_search_returns_results_with_metadata():
     results = client.search("hel")
 
     redis.zrange.assert_called_once_with(
-        "ac:trie:",
+        "ac:trie",
         "[hel",
         "[hel\xff",
         bylex=True,
@@ -93,28 +93,28 @@ def test_search_returns_results_with_metadata():
     assert results == [("hello", 0.0, {"category": "greeting"})]
 
 
-def test_search_returns_empty_for_short_query():
+def test_search_returns_empty_for_empty_query():
     redis = Mock()
-    client = _client(redis=redis, min_query_length=3)
+    client = _client(redis=redis)
 
-    results = client.search("he")
+    results = client.search("")
 
     assert results == []
     redis.zrange.assert_not_called()
 
 
-def test_click_increments_score_on_trie_key():
+def test_click_is_noop():
     redis = Mock()
     client = _client(redis=redis)
 
     client.click("Hello")
 
-    redis.zincrby.assert_called_once_with("ac:trie", 1, "hello")
+    redis.zincrby.assert_not_called()
 
 
 def test_delete_removes_from_trie_and_metadata():
     redis = Mock()
-    client = ScorelessTrieClient(
+    client = ScorelessClient(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),

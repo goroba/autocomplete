@@ -1,4 +1,5 @@
+from autocomplete.prototypes.cumulative_score import CumulativeScore
 from autocomplete.prototypes.module_prototype import ModulePrototype
-from autocomplete.prototypes.scoreless_trie import ScorelessTrie
+from autocomplete.prototypes.scoreless import Scoreless
 
-__all__ = ["ModulePrototype", "ScorelessTrie"]
+__all__ = ["CumulativeScore", "ModulePrototype", "Scoreless"]
