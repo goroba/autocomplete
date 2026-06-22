@@ -1,4 +1,4 @@
 from autocomplete.prototypes.module_prototype import ModulePrototype
-from autocomplete.prototypes.simple_trie import SimpleTrie
+from autocomplete.prototypes.scoreless_trie import ScorelessTrie
 
-__all__ = ["ModulePrototype", "SimpleTrie"]
+__all__ = ["ModulePrototype", "ScorelessTrie"]

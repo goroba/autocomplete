@@ -14,13 +14,15 @@ class Client(ABC):
         normalizer: Normalizer,
         tokenizer: Tokenizer,
         top_n: int = 5,
+        min_query_length: int = 1,
     ) -> None:
         self.normalizer = normalizer
         self.tokenizer = tokenizer
         self.top_n = top_n
+        self.min_query_length = min_query_length
 
     @abstractmethod
-    def store(self, text: str, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
+    def store(self, text: str, *, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
         ...
 
     @abstractmethod
@@ -28,7 +30,7 @@ class Client(ABC):
         ...
 
     @abstractmethod
-    def click(self, text: str) -> None:
+    def click(self, text: str, *, amount: int | None = None) -> None:
         ...
 
     @abstractmethod

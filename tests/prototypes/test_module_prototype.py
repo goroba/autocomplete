@@ -13,7 +13,7 @@ class DummyClient(Client):
         self.stored: list[tuple[str, float | None, dict | None]] = []
         self.searched: list[str] = []
         self.deleted: list[str] = []
-        self.cleared = False
+        self.clicked: list[str] = []
 
     def store(self, text, score=None, metadata=None):
         self.stored.append((text, score, metadata))
@@ -25,8 +25,8 @@ class DummyClient(Client):
     def delete(self, text):
         self.deleted.append(text)
 
-    def clear(self):
-        self.cleared = True
+    def click(self, text, *, amount=None):
+        self.clicked.append(text)
 
 
 class DummyPrototype(ModulePrototype):
@@ -44,10 +44,10 @@ def test_module_prototype_delegates_to_client():
 
     prototype.store("Hello", score=1.0, metadata={"k": "v"})
     prototype.search("Hel")
+    prototype.click("Hello")
     prototype.delete("Hello")
-    prototype.clear()
 
     assert client.stored == [("Hello", 1.0, {"k": "v"})]
     assert client.searched == ["Hel"]
+    assert client.clicked == ["Hello"]
     assert client.deleted == ["Hello"]
-    assert client.cleared is True

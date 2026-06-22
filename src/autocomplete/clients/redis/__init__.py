@@ -1,3 +1,3 @@
-from autocomplete.clients.redis.simple_trie_client import SimpleTrieClient  
+from autocomplete.clients.redis.scoreless_trie_client import ScorelessTrieClient
 
-__all__ = ["SimpleTrieClient"]
+__all__ = ["ScorelessTrieClient"]

@@ -17,6 +17,7 @@ class ModulePrototype(ABC):
     def store(
         self,
         text: str,
+        *,
         score: float | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
@@ -25,8 +26,8 @@ class ModulePrototype(ABC):
     def search(self, query: str) -> list[tuple[str, float, dict[str, Any]]]:
         return self.client.search(query)
 
-    def click(self, text: str) -> None:
-        self.client.click(text)
+    def click(self, text: str, *, amount: int | None = None) -> None:
+        self.client.click(text, amount=amount)
 
     def delete(self, text: str) -> None:
         self.client.delete(text)
