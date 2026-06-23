@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autocomplete.normalizers.normalizer import Normalizer
+from autocomplete.normalizers import Normalizer
 
 
 class NoopNormalizer(Normalizer):

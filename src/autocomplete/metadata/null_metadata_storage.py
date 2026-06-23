@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from autocomplete.metadata.metadata_storage import MetadataStorage
+from autocomplete.metadata import MetadataStorage
 
 
 class NullMetadataStorage(MetadataStorage):

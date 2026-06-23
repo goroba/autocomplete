@@ -1,4 +1,4 @@
-from autocomplete.tokenizers.noop_tokenizer import NoopTokenizer
+from autocomplete.tokenizers import NoopTokenizer
 
 
 def test_noop_tokenizer_returns_single_token():

@@ -1,16 +1,15 @@
 from unittest.mock import Mock
 
-from autocomplete.clients.redis.scoreless_client import ScorelessClient
-from autocomplete.metadata import NullMetadataStorage
-from autocomplete.metadata.redis.redis_metadata_storage import RedisMetadataStorage
-from autocomplete.normalizers.lowercase_normalizer import LowercaseNormalizer
-from autocomplete.tokenizers.noop_tokenizer import NoopTokenizer
+from autocomplete.engines import ScorelessEngine
+from autocomplete.metadata import NullMetadataStorage, RedisMetadataStorage
+from autocomplete.normalizers import LowercaseNormalizer
+from autocomplete.tokenizers import NoopTokenizer
 
 
-def _client(**kwargs) -> ScorelessClient:
+def _engine(**kwargs) -> ScorelessEngine:
     redis = kwargs.pop("redis", Mock())
     prefix = kwargs.pop("prefix", "ac")
-    return ScorelessClient(
+    return ScorelessEngine(
         prefix,
         redis,
         normalizer=LowercaseNormalizer(),
@@ -18,11 +17,11 @@ def _client(**kwargs) -> ScorelessClient:
     )
 
 
-def test_scoreless_client_stores_dependencies():
+def test_scoreless_engine_stores_dependencies():
     normalizer = LowercaseNormalizer()
     redis = Mock()
 
-    client = ScorelessClient("ac", redis, normalizer=normalizer)
+    client = ScorelessEngine("ac", redis, normalizer=normalizer)
 
     assert client.name == "ac"
     assert client.redis is redis
@@ -34,7 +33,7 @@ def test_scoreless_client_stores_dependencies():
 
 def test_store_adds_normalized_text_to_trie_sorted_set():
     redis = Mock()
-    client = _client(redis=redis)
+    client = _engine(redis=redis)
 
     client.store("Hello World")
 
@@ -44,7 +43,7 @@ def test_store_adds_normalized_text_to_trie_sorted_set():
 
 def test_store_persists_metadata_when_storage_defined():
     redis = Mock()
-    client = ScorelessClient(
+    client = ScorelessEngine(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -60,7 +59,7 @@ def test_store_persists_metadata_when_storage_defined():
 
 
 def test_store_ignores_metadata_with_null_storage():
-    client = _client()
+    client = _engine()
 
     client.store("Hello", metadata={"category": "greeting"})
 
@@ -71,7 +70,7 @@ def test_store_ignores_metadata_with_null_storage():
 def test_search_returns_results_with_metadata():
     redis = Mock()
     redis.zrange.return_value = [("hello", 0.0)]
-    client = ScorelessClient(
+    client = ScorelessEngine(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -95,7 +94,7 @@ def test_search_returns_results_with_metadata():
 
 def test_search_returns_empty_for_empty_query():
     redis = Mock()
-    client = _client(redis=redis)
+    client = _engine(redis=redis)
 
     results = client.search("")
 
@@ -105,7 +104,7 @@ def test_search_returns_empty_for_empty_query():
 
 def test_click_is_noop():
     redis = Mock()
-    client = _client(redis=redis)
+    client = _engine(redis=redis)
 
     client.click("Hello")
 
@@ -114,7 +113,7 @@ def test_click_is_noop():
 
 def test_delete_removes_from_trie_and_metadata():
     redis = Mock()
-    client = ScorelessClient(
+    client = ScorelessEngine(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),

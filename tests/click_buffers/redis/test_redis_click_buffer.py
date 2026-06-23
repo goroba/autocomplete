@@ -1,6 +1,6 @@
 from unittest.mock import Mock, call
 
-from autocomplete.click_buffers.redis.redis_click_buffer import RedisClickBuffer
+from autocomplete.click_buffers import RedisClickBuffer
 
 
 def _buffer(**kwargs) -> RedisClickBuffer:

@@ -2,16 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from autocomplete.clients.client import Client
+from autocomplete.engines import Engine
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
-from autocomplete.normalizers.normalizer import Normalizer
-from autocomplete.tokenizers.noop_tokenizer import NoopTokenizer
+from autocomplete.normalizers import Normalizer
 
 if TYPE_CHECKING:
     from redis import Redis
 
 
-class ScorelessClient(Client):
+class ScorelessEngine(Engine):
     def __init__(
         self,
         name: str,
@@ -21,11 +20,8 @@ class ScorelessClient(Client):
         top_n: int = 5,
         metadata_storage: MetadataStorage | None = None,
     ) -> None:
-        super().__init__(
-            normalizer=normalizer,
-            tokenizer=NoopTokenizer(),
-            top_n=top_n,
-        )
+        self.normalizer = normalizer
+        self.top_n = top_n
         self.name = name
         self.redis = redis
         self.metadata_storage = metadata_storage or NullMetadataStorage()

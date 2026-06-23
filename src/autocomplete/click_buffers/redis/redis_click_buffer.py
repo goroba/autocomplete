@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
-from autocomplete.click_buffers.click_buffer import ClickBuffer
-from autocomplete.clients.client import Client
+from autocomplete.click_buffers import ClickBuffer
+from autocomplete.engines import Engine
 
 if TYPE_CHECKING:
     from redis import Redis
@@ -23,11 +23,11 @@ class RedisClickBuffer(ClickBuffer):
         self.redis = redis
         self.click_rate = click_rate
         self.flush_batch_size = flush_batch_size
-        self.client: Client | None = None
+        self.engine: Engine | None = None
         self.buffer_key: str = f"{self.name}:click_buffer"
 
-    def set_client(self, client: Client) -> None:
-        self.client = client
+    def set_engine(self, engine: Engine) -> None:
+        self.engine = engine
 
     def click_to_score(self, clicks: int) -> float:
         return clicks * self.click_rate

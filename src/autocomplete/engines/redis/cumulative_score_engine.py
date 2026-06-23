@@ -1,20 +1,20 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from autocomplete.click_buffers.click_buffer import ClickBuffer
-from autocomplete.click_buffers.noop_click_buffer import NoopClickBuffer
-from autocomplete.clients.client import Client
+from autocomplete.click_buffers import ClickBuffer, NoopClickBuffer
+from autocomplete.engines import Engine
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
-from autocomplete.normalizers.normalizer import Normalizer
-from autocomplete.tokenizers.tokenizer import Tokenizer
+from autocomplete.normalizers import Normalizer
+from autocomplete.tokenizers import Tokenizer
 
 if TYPE_CHECKING:
     from redis import Redis
 
 
-class CumulativeScoreClient(Client):
+class CumulativeScoreEngine(Engine):
     def __init__(
         self,
         name: str,
@@ -26,35 +26,30 @@ class CumulativeScoreClient(Client):
         metadata_storage: MetadataStorage | None = None,
         click_buffer: ClickBuffer | None = None,
     ) -> None:
-        super().__init__(
-            normalizer=normalizer,
-            tokenizer=tokenizer,
-            top_n=top_n,
-        )
+        self.normalizer = normalizer
+        self.tokenizer = tokenizer
+        self.top_n = top_n
         self.name = name
         self.redis = redis
         self.metadata_storage = metadata_storage or NullMetadataStorage()
         self.click_buffer = click_buffer or NoopClickBuffer()
-        self.click_buffer.set_client(self)
+        self.click_buffer.set_engine(self)
 
     def _prefix_key(self, token_prefix: str) -> str:
         return f"{self.name}:prefix:{token_prefix}"
 
-    def _token_prefixes(self, token: str) -> list[str]:
-        return [token[:i] for i in range(1, len(token) + 1)]
-
-    def _trim_set(self, key: str) -> None:
-        self.redis.zremrangebyrank(key, 0, -(self.top_n + 1))
+    def _iter_prefix_keys(self, normalized_text: str) -> Iterator[str]:
+        for token in self.tokenizer.tokenize(normalized_text):
+            for i in range(1, len(token) + 1):
+                yield self._prefix_key(token[:i])
 
     def store(self, text: str, *, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
         member_score = score if score is not None else 0
-
         normalized_text = self.normalizer.normalize(text)
-        for token in self.tokenizer.tokenize(normalized_text):
-            for token_prefix in self._token_prefixes(token):
-                key = self._prefix_key(token_prefix)
-                self.redis.zadd(key, {text: member_score})
-                self._trim_set(key)
+
+        for key in self._iter_prefix_keys(normalized_text):
+            self.redis.zadd(key, {text: member_score})
+            self.redis.zremrangebyrank(key, 0, -(self.top_n + 1))
 
         if metadata is not None:
             self.metadata_storage.set(normalized_text, metadata)
@@ -93,27 +88,22 @@ class CumulativeScoreClient(Client):
         self.click_buffer.click(text, clicks=clicks)
 
     def rescore(self, text: str, score: float) -> None:
-        pipe = self.redis.pipeline()
-        self._enqueue_rescore(pipe, text, score)
-        pipe.execute()
-
-    def _enqueue_rescore(self, pipe, text: str, score: float) -> None:
         normalized_text = self.normalizer.normalize(text)
-        for token in self.tokenizer.tokenize(normalized_text):
-            for token_prefix in self._token_prefixes(token):
-                key = self._prefix_key(token_prefix)
-                pipe.zincrby(key, score, text)
-                pipe.zremrangebyrank(key, 0, -(self.top_n + 1))
+        for key in self._iter_prefix_keys(normalized_text):
+            self.redis.zincrby(key, score, text)
+            self.redis.zremrangebyrank(key, 0, -(self.top_n + 1))
 
     def flush(self) -> None:
         pipe = self.redis.pipeline()
         for text, score in self.click_buffer.flush():
-            self._enqueue_rescore(pipe, text, score)
+            normalized_text = self.normalizer.normalize(text)
+            for key in self._iter_prefix_keys(normalized_text):
+                pipe.zincrby(key, score, text)
+                pipe.zremrangebyrank(key, 0, -(self.top_n + 1))
         pipe.execute()
 
     def delete(self, text: str) -> None:
         normalized_text = self.normalizer.normalize(text)
-        for token in self.tokenizer.tokenize(normalized_text):
-            for token_prefix in self._token_prefixes(token):
-                self.redis.zrem(self._prefix_key(token_prefix), text)
+        for key in self._iter_prefix_keys(normalized_text):
+            self.redis.zrem(key, text)
         self.metadata_storage.delete(normalized_text)

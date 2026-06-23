@@ -1,4 +1,4 @@
-from autocomplete.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
+from autocomplete.tokenizers import WhitespaceTokenizer
 
 
 def test_whitespace_tokenizer_splits_words():

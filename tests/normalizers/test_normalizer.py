@@ -1,6 +1,6 @@
 import pytest
 
-from autocomplete.normalizers.normalizer import Normalizer
+from autocomplete.normalizers import Normalizer
 
 
 def test_normalizer_cannot_be_instantiated():

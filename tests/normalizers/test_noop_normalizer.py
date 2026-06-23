@@ -1,4 +1,4 @@
-from autocomplete.normalizers.noop_normalizer import NoopNormalizer
+from autocomplete.normalizers import NoopNormalizer
 
 
 def test_noop_normalizer_returns_text_unchanged():

@@ -1,4 +1,4 @@
-from autocomplete.normalizers.lowercase_normalizer import LowercaseNormalizer
+from autocomplete.normalizers import LowercaseNormalizer
 
 
 def test_lowercase_normalizer_lowers_text():

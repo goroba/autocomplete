@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 
-from autocomplete.metadata.redis.redis_metadata_storage import RedisMetadataStorage
+from autocomplete.metadata import RedisMetadataStorage
 
 
 def test_redis_metadata_storage_stores_dependencies():

@@ -1,5 +1,5 @@
-from autocomplete.tokenizers.noop_tokenizer import NoopTokenizer
-from autocomplete.tokenizers.tokenizer import Tokenizer
-from autocomplete.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
+from .tokenizer import Tokenizer
+from .noop_tokenizer import NoopTokenizer
+from .whitespace_tokenizer import WhitespaceTokenizer
 
 __all__ = ["Tokenizer", "NoopTokenizer", "WhitespaceTokenizer"]

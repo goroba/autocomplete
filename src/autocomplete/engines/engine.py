@@ -3,22 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from autocomplete.normalizers.normalizer import Normalizer
-from autocomplete.tokenizers.tokenizer import Tokenizer
 
-
-class Client(ABC):
-    def __init__(
-        self,
-        *,
-        normalizer: Normalizer,
-        tokenizer: Tokenizer,
-        top_n: int = 5,
-    ) -> None:
-        self.normalizer = normalizer
-        self.tokenizer = tokenizer
-        self.top_n = top_n
-
+class Engine(ABC):
     @abstractmethod
     def store(self, text: str, *, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
         ...

@@ -1,5 +1,4 @@
-from autocomplete.metadata.metadata_storage import MetadataStorage
-from autocomplete.metadata.null_metadata_storage import NullMetadataStorage
+from autocomplete.metadata import MetadataStorage, NullMetadataStorage
 
 
 def test_null_metadata_storage_is_metadata_storage():

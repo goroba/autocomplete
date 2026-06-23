@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from autocomplete.tokenizers.tokenizer import Tokenizer
+from autocomplete.tokenizers import Tokenizer
 
 
 class WhitespaceTokenizer(Tokenizer):

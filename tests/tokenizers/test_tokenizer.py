@@ -1,6 +1,6 @@
 import pytest
 
-from autocomplete.tokenizers.tokenizer import Tokenizer
+from autocomplete.tokenizers import Tokenizer
 
 
 def test_tokenizer_cannot_be_instantiated():
