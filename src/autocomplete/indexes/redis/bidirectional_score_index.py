@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from autocomplete.click_buffers import ClickBuffer, NoopClickBuffer
-from autocomplete.engines import Engine
+from autocomplete.indexes import Index
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
 from autocomplete.normalizers import Normalizer
 from autocomplete.tokenizers import Tokenizer
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from redis import Redis
 
 
-class BidirectionalScoreEngine(Engine):
+class BidirectionalScoreIndex(Index):
     def __init__(
         self,
         name: str,

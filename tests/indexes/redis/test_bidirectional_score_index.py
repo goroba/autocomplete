@@ -1,17 +1,17 @@
 from unittest.mock import Mock, patch
 
 from autocomplete.click_buffers import NoopClickBuffer, RedisClickBuffer
-from autocomplete.engines import BidirectionalScoreEngine
-from autocomplete.factories import create_bidirectional_score_engine
+from autocomplete.indexes import BidirectionalScoreIndex
+from autocomplete.factories import create_bidirectional_score_index
 from autocomplete.metadata import NullMetadataStorage, RedisMetadataStorage
 from autocomplete.normalizers import LowercaseNormalizer
 from autocomplete.tokenizers import WhitespaceTokenizer
 
 
-def _engine(**kwargs) -> BidirectionalScoreEngine:
+def _index(**kwargs) -> BidirectionalScoreIndex:
     redis = kwargs.pop("redis", Mock())
     prefix = kwargs.pop("prefix", "ac")
-    return BidirectionalScoreEngine(
+    return BidirectionalScoreIndex(
         prefix,
         redis,
         normalizer=LowercaseNormalizer(),
@@ -27,12 +27,12 @@ def _mock_pipeline(redis: Mock) -> Mock:
     return pipe
 
 
-def test_bidirectional_score_engine_stores_dependencies():
+def test_bidirectional_score_index_stores_dependencies():
     normalizer = LowercaseNormalizer()
     tokenizer = WhitespaceTokenizer()
     redis = Mock()
 
-    client = BidirectionalScoreEngine("ac", redis, normalizer=normalizer, tokenizer=tokenizer)
+    client = BidirectionalScoreIndex("ac", redis, normalizer=normalizer, tokenizer=tokenizer)
 
     assert client.name == "ac"
     assert client.redis is redis
@@ -45,7 +45,7 @@ def test_bidirectional_score_engine_stores_dependencies():
 
 def test_store_adds_to_vocabulary_and_prefix():
     redis = Mock()
-    client = _engine(redis=redis)
+    client = _index(redis=redis)
 
     client.store("Apple")
 
@@ -67,7 +67,7 @@ def test_store_adds_to_vocabulary_and_prefix():
 
 def test_store_does_not_trim_vocabulary():
     redis = Mock()
-    client = _engine(redis=redis)
+    client = _index(redis=redis)
 
     client.store("Apple")
 
@@ -79,7 +79,7 @@ def test_store_does_not_trim_vocabulary():
 def test_positive_rescore_updates_vocabulary_and_trims_full_token_prefix():
     redis = Mock()
     redis.zscore.return_value = 1.0
-    client = _engine(redis=redis)
+    client = _index(redis=redis)
 
     client.rescore("Apple", 1.0)
 
@@ -98,7 +98,7 @@ def test_negative_rescore_rebuilds_when_text_leaves_top_n():
     redis.zrange.return_value = ["cherry"]
     redis.zmscore.return_value = [5.0]
     pipe = _mock_pipeline(redis)
-    client = _engine(redis=redis)
+    client = _index(redis=redis)
 
     client.rescore("Apple", -3.0)
 
@@ -124,7 +124,7 @@ def test_negative_rescore_rebuilds_on_boundary_mismatch():
 
     redis.zrange.side_effect = zrange_side_effect
     pipe = _mock_pipeline(redis)
-    client = _engine(redis=redis, top_n=2)
+    client = _index(redis=redis, top_n=2)
 
     client.rescore("Apple", -1.0)
 
@@ -144,7 +144,7 @@ def test_rebuild_prefix_keeps_only_top_n_by_score():
     redis.zrange.return_value = ["apple", "apricot", "application"]
     redis.zmscore.return_value = [10.0, 20.0, 30.0]
     pipe = _mock_pipeline(redis)
-    client = _engine(redis=redis, top_n=2)
+    client = _index(redis=redis, top_n=2)
 
     client._rebuild_prefix_set("ap")
 
@@ -169,7 +169,7 @@ def test_rebuild_prefix_keeps_only_top_n_by_score():
 def test_delete_removes_from_vocabulary_and_prefix():
     redis = Mock()
     redis.zrange.return_value = []
-    client = BidirectionalScoreEngine(
+    client = BidirectionalScoreIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -206,7 +206,7 @@ def test_flush_processes_click_buffer_iterator_incrementally():
         yield ("Banana", 2.0)
 
     click_buffer.flush.return_value = batched_flush()
-    client = _engine(redis=redis, click_buffer=click_buffer)
+    client = _index(redis=redis, click_buffer=click_buffer)
 
     client.flush()
 
@@ -226,7 +226,7 @@ def test_flush_drains_click_buffer_and_updates_vocabulary():
     redis.zscore.return_value = 1.0
     click_buffer = Mock(spec=RedisClickBuffer)
     click_buffer.flush.return_value = iter([("Red Apple", 1.0)])
-    client = _engine(redis=redis, click_buffer=click_buffer)
+    client = _index(redis=redis, click_buffer=click_buffer)
 
     with patch.object(client, "rescore") as mock_rescore:
         client.flush()
@@ -244,7 +244,7 @@ def test_flush_with_empty_click_buffer():
     redis = Mock()
     click_buffer = Mock(spec=RedisClickBuffer)
     click_buffer.flush.return_value = iter([])
-    client = _engine(redis=redis, click_buffer=click_buffer)
+    client = _index(redis=redis, click_buffer=click_buffer)
 
     client.flush()
 
@@ -264,7 +264,7 @@ def test_flush_negative_delta_rebuilds_prefix():
     click_buffer = Mock(spec=RedisClickBuffer)
     click_buffer.flush.return_value = iter([("Apple", -3.0)])
     pipe = _mock_pipeline(redis)
-    client = _engine(redis=redis, click_buffer=click_buffer)
+    client = _index(redis=redis, click_buffer=click_buffer)
 
     with patch.object(client, "rescore") as mock_rescore:
         client.flush()
@@ -285,7 +285,7 @@ def test_flush_negative_delta_rebuilds_prefix():
 def test_search_single_token_returns_normalized_text():
     redis = Mock()
     redis.zrevrange.return_value = [("apple", 1.0)]
-    client = BidirectionalScoreEngine(
+    client = BidirectionalScoreIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -308,7 +308,7 @@ def test_search_single_token_returns_normalized_text():
 def test_search_multi_token_uses_zinterstore():
     redis = Mock()
     redis.zrevrange.return_value = [("red apple", 2.0)]
-    client = BidirectionalScoreEngine(
+    client = BidirectionalScoreIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -337,7 +337,7 @@ def test_search_multi_token_uses_zinterstore():
 
 def test_search_returns_empty_for_empty_query():
     redis = Mock()
-    client = _engine(redis=redis)
+    client = _index(redis=redis)
 
     results = client.search("   ")
 
@@ -345,11 +345,11 @@ def test_search_returns_empty_for_empty_query():
     redis.zrevrange.assert_not_called()
 
 
-def test_create_bidirectional_score_engine_wires_components():
+def test_create_bidirectional_score_index_wires_components():
     redis = Mock()
-    client = create_bidirectional_score_engine("ac", redis)
+    client = create_bidirectional_score_index("ac", redis)
 
-    assert isinstance(client, BidirectionalScoreEngine)
+    assert isinstance(client, BidirectionalScoreIndex)
     assert client.name == "ac"
     assert client.redis is redis
     assert isinstance(client.normalizer, LowercaseNormalizer)

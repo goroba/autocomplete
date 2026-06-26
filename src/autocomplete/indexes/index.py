@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class Engine(ABC):
+class Index(ABC):
     @abstractmethod
     def store(self, text: str, *, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
         ...

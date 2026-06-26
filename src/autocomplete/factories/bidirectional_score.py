@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from autocomplete.click_buffers import ClickBuffer, RedisClickBuffer
-from autocomplete.engines import BidirectionalScoreEngine
+from autocomplete.indexes import BidirectionalScoreIndex
 from autocomplete.metadata import MetadataStorage, RedisMetadataStorage
 from autocomplete.normalizers import LowercaseNormalizer, Normalizer
 from autocomplete.tokenizers import Tokenizer, WhitespaceTokenizer
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from redis import Redis
 
 
-def create_bidirectional_score_engine(
+def create_bidirectional_score_index(
     name: str,
     redis: Redis,
     *,
@@ -21,8 +21,8 @@ def create_bidirectional_score_engine(
     tokenizer: Tokenizer | None = None,
     metadata_storage: MetadataStorage | None = None,
     click_buffer: ClickBuffer | None = None,
-) -> BidirectionalScoreEngine:
-    return BidirectionalScoreEngine(
+) -> BidirectionalScoreIndex:
+    return BidirectionalScoreIndex(
         name,
         redis,
         top_n=top_n,

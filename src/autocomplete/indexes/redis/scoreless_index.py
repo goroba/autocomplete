@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from autocomplete.engines import Engine
+from autocomplete.indexes import Index
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
 from autocomplete.normalizers import Normalizer
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from redis import Redis
 
 
-class ScorelessEngine(Engine):
+class ScorelessIndex(Index):
     def __init__(
         self,
         name: str,
