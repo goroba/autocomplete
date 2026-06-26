@@ -99,3 +99,45 @@ def test_second_flush_returns_empty():
     pairs = list(buffer.flush())
 
     assert pairs == []
+
+
+def test_iter_yields_buffered_pairs_without_removing():
+    redis = Mock()
+    redis.zrange.return_value = [("Red Apple", 2.0), ("Banana", 1.0)]
+    buffer = _buffer(redis=redis)
+
+    pairs = list(buffer)
+
+    redis.zrange.assert_called_once_with("ac:click_buffer", 0, 9, withscores=True)
+    redis.zpopmax.assert_not_called()
+    assert pairs == [("Red Apple", 2.0), ("Banana", 1.0)]
+
+
+def test_iter_fetches_in_batches():
+    redis = Mock()
+    redis.zrange.side_effect = [
+        [("A", 1.0), ("B", 2.0)],
+        [("C", 3.0)],
+    ]
+    buffer = _buffer(redis=redis, flush_batch_size=2)
+
+    pairs = list(buffer)
+
+    assert redis.zrange.call_args_list == [
+        call("ac:click_buffer", 0, 1, withscores=True),
+        call("ac:click_buffer", 2, 3, withscores=True),
+    ]
+    redis.zpopmax.assert_not_called()
+    assert pairs == [("A", 1.0), ("B", 2.0), ("C", 3.0)]
+
+
+def test_iter_returns_empty_when_buffer_empty():
+    redis = Mock()
+    redis.zrange.return_value = []
+    buffer = _buffer(redis=redis)
+
+    pairs = list(buffer)
+
+    redis.zrange.assert_called_once_with("ac:click_buffer", 0, 9, withscores=True)
+    redis.zpopmax.assert_not_called()
+    assert pairs == []

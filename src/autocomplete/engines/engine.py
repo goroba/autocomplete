@@ -18,13 +18,13 @@ class Engine(ABC):
         ...
 
     @abstractmethod
-    def rescore(self, text: str, score: float) -> None:
-        ...
-
-    @abstractmethod
-    def delete(self, text: str) -> None:
+    def rescore(self, text: str, delta_score: float) -> None:
         ...
 
     @abstractmethod
     def flush(self) -> None:
+        ...
+
+    @abstractmethod
+    def delete(self, text: str) -> None:
         ...

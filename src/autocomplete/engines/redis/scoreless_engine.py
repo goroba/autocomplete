@@ -16,22 +16,20 @@ class ScorelessEngine(Engine):
         name: str,
         redis: Redis,
         *,
-        normalizer: Normalizer,
         top_n: int = 5,
+        normalizer: Normalizer,
         metadata_storage: MetadataStorage | None = None,
     ) -> None:
-        self.normalizer = normalizer
-        self.top_n = top_n
         self.name = name
         self.redis = redis
+        self.top_n = top_n
+        self.normalizer = normalizer
         self.metadata_storage = metadata_storage or NullMetadataStorage()
-
-    def _trie_key(self) -> str:
-        return f"{self.name}:trie"
+        self.trie_key = f"{self.name}:trie"
 
     def store(self, text: str, *, score: float | None = None, metadata: dict[str, Any] | None = None) -> None:
         normalized_text = self.normalizer.normalize(text)
-        self.redis.zadd(self._trie_key(), {normalized_text: 0})
+        self.redis.zadd(self.trie_key, {normalized_text: 0})
 
         if metadata is not None:
             self.metadata_storage.set(normalized_text, metadata)
@@ -41,31 +39,30 @@ class ScorelessEngine(Engine):
         if not normalized_query:
             return []
 
-        results: list[tuple[str, float]] = self.redis.zrange(
-            self._trie_key(),
+        results: list[str] = self.redis.zrange(
+            self.trie_key,
             f"[{normalized_query}",
             f"[{normalized_query}\xff",
             bylex=True,
             offset=0,
             num=self.top_n,
-            withscores=True,
         )
 
         return [
-            (text, score, self.metadata_storage.get(text) or {})
-            for text, score in results[: self.top_n]
+            (text, 0.0, self.metadata_storage.get(text) or {})
+            for text in results[: self.top_n]
         ]
 
     def click(self, text: str, *, clicks: int = 1) -> None:
         pass
 
-    def rescore(self, text: str, score: float) -> None:
+    def rescore(self, text: str, delta_score: float) -> None:
+        pass
+
+    def flush(self) -> None:
         pass
 
     def delete(self, text: str) -> None:
         normalized_text = self.normalizer.normalize(text)
-        self.redis.zrem(self._trie_key(), normalized_text)
+        self.redis.zrem(self.trie_key, normalized_text)
         self.metadata_storage.delete(normalized_text)
-
-    def flush(self) -> None:
-        pass

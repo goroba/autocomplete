@@ -3,7 +3,6 @@ from unittest.mock import Mock
 from autocomplete.engines import ScorelessEngine
 from autocomplete.metadata import NullMetadataStorage, RedisMetadataStorage
 from autocomplete.normalizers import LowercaseNormalizer
-from autocomplete.tokenizers import NoopTokenizer
 
 
 def _engine(**kwargs) -> ScorelessEngine:
@@ -26,7 +25,7 @@ def test_scoreless_engine_stores_dependencies():
     assert client.name == "ac"
     assert client.redis is redis
     assert client.normalizer is normalizer
-    assert isinstance(client.tokenizer, NoopTokenizer)
+    assert client.trie_key == "ac:trie"
     assert client.top_n == 5
     assert isinstance(client.metadata_storage, NullMetadataStorage)
 
@@ -69,7 +68,7 @@ def test_store_ignores_metadata_with_null_storage():
 
 def test_search_returns_results_with_metadata():
     redis = Mock()
-    redis.zrange.return_value = [("hello", 0.0)]
+    redis.zrange.return_value = ["hello"]
     client = ScorelessEngine(
         "ac",
         redis,
@@ -87,7 +86,6 @@ def test_search_returns_results_with_metadata():
         bylex=True,
         offset=0,
         num=5,
-        withscores=True,
     )
     assert results == [("hello", 0.0, {"category": "greeting"})]
 

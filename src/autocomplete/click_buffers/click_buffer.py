@@ -16,3 +16,7 @@ class ClickBuffer(ABC):
     @abstractmethod
     def flush(self) -> Iterator[tuple[str, float]]:
         ...
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[tuple[str, float]]:
+        ...

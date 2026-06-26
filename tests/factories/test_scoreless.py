@@ -4,7 +4,6 @@ from autocomplete.engines import ScorelessEngine
 from autocomplete.factories import create_scoreless_engine
 from autocomplete.metadata import RedisMetadataStorage
 from autocomplete.normalizers import NoopNormalizer
-from autocomplete.tokenizers import NoopTokenizer
 
 
 def test_create_scoreless_engine_wires_components():
@@ -15,7 +14,6 @@ def test_create_scoreless_engine_wires_components():
     assert client.name == "ac"
     assert client.redis is redis
     assert isinstance(client.normalizer, NoopNormalizer)
-    assert isinstance(client.tokenizer, NoopTokenizer)
     assert isinstance(client.metadata_storage, RedisMetadataStorage)
     assert client.top_n == 5
 
@@ -50,7 +48,7 @@ def test_create_scoreless_engine_store_persists_metadata():
 
 def test_create_scoreless_engine_search_returns_results_with_metadata():
     redis = Mock()
-    redis.zrange.return_value = [("hello", 0.0)]
+    redis.zrange.return_value = ["hello"]
     redis.hgetall.return_value = {"category": "greeting"}
     client = create_scoreless_engine("ac", redis)
 
@@ -63,6 +61,5 @@ def test_create_scoreless_engine_search_returns_results_with_metadata():
         bylex=True,
         offset=0,
         num=5,
-        withscores=True,
     )
     assert results == [("hello", 0.0, {"category": "greeting"})]
