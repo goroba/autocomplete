@@ -6,14 +6,14 @@ from uuid import uuid4
 from autocomplete.click_buffers import ClickBuffer, NoopClickBuffer
 from autocomplete.indexes import Index
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
-from autocomplete.normalizers import Normalizer
-from autocomplete.tokenizers import Tokenizer
+from autocomplete.normalizers import NoopNormalizer, Normalizer
+from autocomplete.tokenizers import NoopTokenizer, Tokenizer
 
 if TYPE_CHECKING:
     from redis import Redis
 
 
-class BidirectionalScoreIndex(Index):
+class RedisScoredIndex(Index):
     def __init__(
         self,
         name: str,
@@ -21,8 +21,8 @@ class BidirectionalScoreIndex(Index):
         *,
         top_n: int = 5,
         trim: bool = True,
-        normalizer: Normalizer,
-        tokenizer: Tokenizer,
+        normalizer: Normalizer | None = None,
+        tokenizer: Tokenizer | None = None,
         metadata_storage: MetadataStorage | None = None,
         click_buffer: ClickBuffer | None = None,
     ) -> None:
@@ -30,8 +30,8 @@ class BidirectionalScoreIndex(Index):
         self.redis = redis
         self.top_n = top_n
         self.trim = trim
-        self.normalizer = normalizer
-        self.tokenizer = tokenizer
+        self.normalizer = normalizer or NoopNormalizer()
+        self.tokenizer = tokenizer or NoopTokenizer()
         self.metadata_storage = metadata_storage or NullMetadataStorage()
         self.click_buffer = click_buffer or NoopClickBuffer()
         self.vocabulary_key = f"{self.name}:vocabulary"

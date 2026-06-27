@@ -1,16 +1,16 @@
 from unittest.mock import Mock
 
-from autocomplete.indexes import ScorelessIndex
-from autocomplete.factories import create_scoreless_index
+from autocomplete.indexes import RedisScorelessIndex
+from autocomplete.factories import create_redis_scoreless_index
 from autocomplete.metadata import RedisMetadataStorage
 from autocomplete.normalizers import NoopNormalizer
 
 
-def test_create_scoreless_index_wires_components():
+def test_create_redis_scoreless_index_wires_components():
     redis = Mock()
-    client = create_scoreless_index("ac", redis)
+    client = create_redis_scoreless_index("ac", redis)
 
-    assert isinstance(client, ScorelessIndex)
+    assert isinstance(client, RedisScorelessIndex)
     assert client.name == "ac"
     assert client.redis is redis
     assert isinstance(client.normalizer, NoopNormalizer)
@@ -18,25 +18,25 @@ def test_create_scoreless_index_wires_components():
     assert client.top_n == 5
 
 
-def test_create_scoreless_index_accepts_custom_top_n():
+def test_create_redis_scoreless_index_accepts_custom_top_n():
     redis = Mock()
-    client = create_scoreless_index("ac", redis, top_n=10)
+    client = create_redis_scoreless_index("ac", redis, top_n=10)
 
     assert client.top_n == 10
 
 
-def test_create_scoreless_index_store_uses_trie_key():
+def test_create_redis_scoreless_index_store_uses_trie_key():
     redis = Mock()
-    client = create_scoreless_index("ac", redis)
+    client = create_redis_scoreless_index("ac", redis)
 
     client.store("Hello")
 
     redis.zadd.assert_called_once_with("ac:trie", {"Hello": 0})
 
 
-def test_create_scoreless_index_store_persists_metadata():
+def test_create_redis_scoreless_index_store_persists_metadata():
     redis = Mock()
-    client = create_scoreless_index("ac", redis)
+    client = create_redis_scoreless_index("ac", redis)
 
     client.store("Hello", metadata={"category": "greeting"})
 
@@ -46,11 +46,11 @@ def test_create_scoreless_index_store_persists_metadata():
     )
 
 
-def test_create_scoreless_index_search_returns_results_with_metadata():
+def test_create_redis_scoreless_index_search_returns_results_with_metadata():
     redis = Mock()
     redis.zrange.return_value = ["hello"]
     redis.hgetall.return_value = {"category": "greeting"}
-    client = create_scoreless_index("ac", redis)
+    client = create_redis_scoreless_index("ac", redis)
 
     results = client.search("hel")
 

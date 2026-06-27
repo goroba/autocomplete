@@ -1,5 +1,6 @@
 from .index import Index
-from .redis.bidirectional_score_index import BidirectionalScoreIndex
-from .redis.scoreless_index import ScorelessIndex
+from .redis_scored_index import RedisScoredIndex
+from .redis_scoreless_index import RedisScorelessIndex
+from .redi_search_scored_index import RediSearchScoredIndex
 
-__all__ = ["Index", "BidirectionalScoreIndex", "ScorelessIndex"]
+__all__ = ["Index", "RedisScoredIndex", "RedisScorelessIndex", "RediSearchScoredIndex"]

@@ -4,26 +4,26 @@ from typing import TYPE_CHECKING, Any
 
 from autocomplete.indexes import Index
 from autocomplete.metadata import MetadataStorage, NullMetadataStorage
-from autocomplete.normalizers import Normalizer
+from autocomplete.normalizers import NoopNormalizer, Normalizer
 
 if TYPE_CHECKING:
     from redis import Redis
 
 
-class ScorelessIndex(Index):
+class RedisScorelessIndex(Index):
     def __init__(
         self,
         name: str,
         redis: Redis,
         *,
         top_n: int = 5,
-        normalizer: Normalizer,
+        normalizer: Normalizer | None = None,
         metadata_storage: MetadataStorage | None = None,
     ) -> None:
         self.name = name
         self.redis = redis
         self.top_n = top_n
-        self.normalizer = normalizer
+        self.normalizer = normalizer or NoopNormalizer()
         self.metadata_storage = metadata_storage or NullMetadataStorage()
         self.trie_key = f"{self.name}:trie"
 

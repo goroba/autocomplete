@@ -1,8 +1,9 @@
 """Autocomplete library."""
 
 from autocomplete.factories import (
-    create_bidirectional_score_index,
-    create_scoreless_index,
+    create_redis_scored_index,
+    create_redis_scoreless_index,
+    create_redis_search_scored_index,
 )
 from autocomplete.indexes import Index
 from autocomplete.normalizers import LowercaseNormalizer, NoopNormalizer, Normalizer
@@ -13,8 +14,9 @@ __version__ = "0.1.0"
 __all__ = [
     "__version__",
     "Index",
-    "create_bidirectional_score_index",
-    "create_scoreless_index",
+    "create_redis_scored_index",
+    "create_redis_scoreless_index",
+    "create_redis_search_scored_index",
     "Normalizer",
     "LowercaseNormalizer",
     "NoopNormalizer",

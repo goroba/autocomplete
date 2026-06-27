@@ -3,16 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from autocomplete.click_buffers import ClickBuffer, RedisClickBuffer
-from autocomplete.indexes import BidirectionalScoreIndex
+from autocomplete.indexes import RedisScoredIndex
 from autocomplete.metadata import MetadataStorage, RedisMetadataStorage
-from autocomplete.normalizers import LowercaseNormalizer, Normalizer
-from autocomplete.tokenizers import Tokenizer, WhitespaceTokenizer
+from autocomplete.normalizers import Normalizer
+from autocomplete.tokenizers import Tokenizer
 
 if TYPE_CHECKING:
     from redis import Redis
 
 
-def create_bidirectional_score_index(
+def create_redis_scored_index(
     name: str,
     redis: Redis,
     *,
@@ -21,13 +21,13 @@ def create_bidirectional_score_index(
     tokenizer: Tokenizer | None = None,
     metadata_storage: MetadataStorage | None = None,
     click_buffer: ClickBuffer | None = None,
-) -> BidirectionalScoreIndex:
-    return BidirectionalScoreIndex(
+) -> RedisScoredIndex:
+    return RedisScoredIndex(
         name,
         redis,
         top_n=top_n,
-        normalizer=normalizer or LowercaseNormalizer(),
-        tokenizer=tokenizer or WhitespaceTokenizer(),
+        normalizer=normalizer,
+        tokenizer=tokenizer,
         metadata_storage=metadata_storage or RedisMetadataStorage(name, redis),
         click_buffer=click_buffer or RedisClickBuffer(name, redis),
     )

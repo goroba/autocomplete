@@ -1,14 +1,14 @@
 from unittest.mock import Mock
 
-from autocomplete.indexes import ScorelessIndex
+from autocomplete.indexes import RedisScorelessIndex
 from autocomplete.metadata import NullMetadataStorage, RedisMetadataStorage
 from autocomplete.normalizers import LowercaseNormalizer
 
 
-def _index(**kwargs) -> ScorelessIndex:
+def _index(**kwargs) -> RedisScorelessIndex:
     redis = kwargs.pop("redis", Mock())
     prefix = kwargs.pop("prefix", "ac")
-    return ScorelessIndex(
+    return RedisScorelessIndex(
         prefix,
         redis,
         normalizer=LowercaseNormalizer(),
@@ -16,11 +16,11 @@ def _index(**kwargs) -> ScorelessIndex:
     )
 
 
-def test_scoreless_index_stores_dependencies():
+def test_redis_scoreless_index_stores_dependencies():
     normalizer = LowercaseNormalizer()
     redis = Mock()
 
-    client = ScorelessIndex("ac", redis, normalizer=normalizer)
+    client = RedisScorelessIndex("ac", redis, normalizer=normalizer)
 
     assert client.name == "ac"
     assert client.redis is redis
@@ -42,7 +42,7 @@ def test_store_adds_normalized_text_to_trie_sorted_set():
 
 def test_store_persists_metadata_when_storage_defined():
     redis = Mock()
-    client = ScorelessIndex(
+    client = RedisScorelessIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -69,7 +69,7 @@ def test_store_ignores_metadata_with_null_storage():
 def test_search_returns_results_with_metadata():
     redis = Mock()
     redis.zrange.return_value = ["hello"]
-    client = ScorelessIndex(
+    client = RedisScorelessIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
@@ -111,7 +111,7 @@ def test_click_is_noop():
 
 def test_delete_removes_from_trie_and_metadata():
     redis = Mock()
-    client = ScorelessIndex(
+    client = RedisScorelessIndex(
         "ac",
         redis,
         normalizer=LowercaseNormalizer(),
