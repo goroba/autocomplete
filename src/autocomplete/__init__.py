@@ -4,6 +4,7 @@ from autocomplete.factories import (
     create_redis_scored_index,
     create_redis_scoreless_index,
     create_redis_search_scored_index,
+    create_sqlalchemy_scored_index,
 )
 from autocomplete.indexes import Index
 from autocomplete.normalizers import LowercaseNormalizer, NoopNormalizer, Normalizer
@@ -17,6 +18,7 @@ __all__ = [
     "create_redis_scored_index",
     "create_redis_scoreless_index",
     "create_redis_search_scored_index",
+    "create_sqlalchemy_scored_index",
     "Normalizer",
     "LowercaseNormalizer",
     "NoopNormalizer",
