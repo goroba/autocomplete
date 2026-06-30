@@ -8,6 +8,11 @@ from autocomplete.factories import (
     create_sqlalchemy_scored_index,
     create_sqlalchemy_table_index,
 )
+from autocomplete.indexer import (
+    Indexer,
+    SqlAlchemyCoreTableIndexer,
+    SqlAlchemyOrmTableIndexer,
+)
 from autocomplete.indexes import Index
 from autocomplete.normalizers import LowercaseNormalizer, NoopNormalizer, Normalizer
 from autocomplete.tokenizers import NoopTokenizer, Tokenizer, WhitespaceTokenizer
@@ -23,6 +28,9 @@ __all__ = [
     "create_sqlalchemy_scored_index",
     "create_sqlalchemy_table_index",
     "create_sqlalchemy_orm_table_index",
+    "Indexer",
+    "SqlAlchemyCoreTableIndexer",
+    "SqlAlchemyOrmTableIndexer",
     "Normalizer",
     "LowercaseNormalizer",
     "NoopNormalizer",
