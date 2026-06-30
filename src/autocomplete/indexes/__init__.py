@@ -3,6 +3,7 @@ from .redis_scored_index import RedisScoredIndex
 from .redis_scoreless_index import RedisScorelessIndex
 from .redi_search_scored_index import RediSearchScoredIndex
 from .sqlalchemy_scored_index import SqlAlchemyScoredIndex
+from .sqlalchemy_table_index import SqlAlchemyTableIndex
 
 __all__ = [
     "Index",
@@ -10,4 +11,5 @@ __all__ = [
     "RedisScorelessIndex",
     "RediSearchScoredIndex",
     "SqlAlchemyScoredIndex",
+    "SqlAlchemyTableIndex",
 ]
